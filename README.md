@@ -52,7 +52,7 @@ A simple file transfer solution for micropython similar to linux zmodem lrzsz ak
 
 * mrz triggers an intent to receive by sending the following bytes:
 
-`"mrz waiting to receive.**\x18B010000100000023be50\x0d\x8a\x11" + "\x18" * 10 + "\x08" * 10`
+`b"mrz waiting to receive.**\x18B010000100000023be50\x0d\x8a\x11" + b"\x18" * 10 + b"\x08" * 10`
 
 aka
 
@@ -64,13 +64,17 @@ aka
    
 * msz triggers an intent to send by sending the following bytes:
 
+`b"rz\x0d\x2a\x2a\x18B0000000000000000\x0d\x8a\x11" + b"\x18" * 10 + b"\x08" * 10
+
+aka
+
     00000000  72 7a 0d 2a 2a 18 42 30  30 30 30 30 30 30 30 30  |rz.**.B000000000|
     00000010  30 30 30 30 30 0d 8a 11  18 18 18 18 18 18 18 18  |00000...........|
     00000020  18 18 08 08 08 08 08 08  08 08 08 08              |............|
 
 * all communications from here-on are 8-bit binary
 * all packets begin with two bytes
-* if the first byte is \xFF the second byte in a length N and N extra bytes follow. This represents a status message (completion or error message) to be shown to the user, and indicates the end of the file transfer
+* if the first byte is \xFF the second byte is a length N and N extra bytes follow. This represents either (1) a status message (completion or error message) to be shown to the user, and indicates the end of the file transfer, or (2) the name of a file to read from or write to (if the first character after the length is \x00)
 * if the first 2 byes is \x8000 or above, this indicates a checksum error, and the other side "backs up" N-0x8000 bytes
 * if the first 2 bytes are < 0x8000 this indicates a packet length.  This implementation always sends 0x1000 sized packets (4096 bytes) (except for any last one).  
 * All packets, including status message and checksum errors, always have 2 extra bytes added on the end, which are the CRC16 of the data which preceded (from and including the first/size bytes).  
